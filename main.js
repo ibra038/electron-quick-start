@@ -1,16 +1,16 @@
 // Modules to control application life and create native browser window
-const {app, BrowserWindow} = require('electron')
+const { app, ipcMain, BrowserWindow } = require('electron')
 const path = require('path')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
 
-function createWindow () {
+function createWindow() {
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 1280,
+    height: 960,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js')
     }
@@ -51,3 +51,35 @@ app.on('activate', function () {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
+
+
+// PRINTING BUG EXAMPLE
+ipcMain.on('print', (event, options) => {
+  console.log('==============================');
+  console.log('Printing initiated with the following options:');
+  console.log(options);
+
+  // Create a  window with the print page
+  let printWindow = new BrowserWindow({show: false});
+
+  printWindow.loadFile('print-page.html')
+
+  printWindow.webContents.on('did-finish-load', function () {
+
+    // Print 
+    printWindow.webContents.print(options, success => {
+      if (success) {
+        console.log("Print job was succesfull!");
+      } else {
+        console.log("Print job was not succesfull )-;");
+      }
+
+      // Close the window
+      printWindow.destroy();
+
+      console.log('Printing finished.')
+      console.log('==============================');
+    });
+  });
+
+});

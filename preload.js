@@ -5,3 +5,6 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById(`${versionType}-version`).innerText = process.versions[versionType]
   }
 })
+
+window.ipcRenderer = require('electron').ipcRenderer;
+window.remote = require('electron').remote;

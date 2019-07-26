@@ -1,16 +1,159 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>Hello World!</title>
-  </head>
-  <body>
-    <h1>Hello World!</h1>
-    We are using Node.js <span id="node-version"></span>,
-    Chromium <span id="chrome-version"></span>,
-    and Electron <span id="electron-version"></span>.
 
-    <!-- You can also require other files to run in this process -->
-    <script src="./renderer.js"></script>
-  </body>
+<head>
+	<meta charset="UTF-8">
+	<title>Hello World!</title>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+		integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+
+<body>
+	<div class="container-fluid">
+		<div class="row">
+			<div class="jumbotron jumbotron-fluid w-100">
+				<div class="container">
+					<h4 class="display-4">Silent printing not working in combination with deviceName (v5.0.7+)</h4>
+					<p class="lead">To reproduce the bug, follow the steps below.</p>
+					<hr class="my-4">
+					<p class="lead">
+						<a class="btn btn-primary btn-lg" href="#" role="button">View issue on GitHub</a>
+					</p>
+				</div>
+			</div>
+		</div>
+
+		<div class="row mt-5">
+			<div class="col-12">
+				<h3>1. Enter your own printer name below</h3>
+				<div class="input-group mb-3">
+					<div class="input-group-prepend">
+						<span class="input-group-text" id="basic-addon3">PRINTER_NAME:</span>
+					</div>
+					<input id="input-printer" type="text" class="form-control" id="printer"
+						placeholder="E.g. EPSON_TM_T20II">
+				</div>
+				<small class="form-text text-muted">System printers found: <span id="printers-list">none</span></small>
+			</div>
+		</div>
+
+		<div class="row mt-5">
+			<div class="col-12">
+				<h3>2. Choose a demo to run</h3>
+				<table class="table table-striped table-hover">
+					<thead>
+						<tr>
+							<th>#</th>
+							<th>Code</th>
+							<th>Expected&nbsp;Behavior</th>
+							<th>Actual&nbsp;Behavior</th>
+							<th>Demo</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<th scope="row">1</th>
+							<td><code>webContents.print();</code></td>
+							<td>Opens the print preview</td>
+							<td style="color: #4CBB17">As expected</td>
+							<td><button type="button" class="btn btn-primary"
+									onClick="javascript:execute(1);">Excecute</button></td>
+						</tr>
+						<tr>
+							<th scope="row">2</th>
+							<td><code>webContents.print({ silent: true });</code></td>
+							<td>Prints silently to default printer</td>
+							<td style="color: #4CBB17">As expected</td>
+							<td><button type="button" class="btn btn-primary"
+									onClick="javascript:execute(2);">Excecute</button></td>
+						</tr>
+						<tr>
+							<th scope="row">3</th>
+							<td><code>webContents.print({ silent: true, printBackground: true })	;</code></td>
+							<td>Prints silently with background to default printer</td>
+							<td style="color: #4CBB17">As expected</td>
+							<td><button type="button" class="btn btn-primary"
+									onClick="javascript:execute(3);">Excecute</button></td>
+						</tr>
+						<tr>
+							<th scope="row">4</th>
+							<td><code>webContents.print({ silent: true, deviceName:</code> + PRINTER_NAME +
+								<code>});</code></td>
+							<td>Prints silently to the predefined printer</td>
+							<td style="color: #FF0000">Nothing is send to the printer &amp; callback will never be called</td>
+							<td><button type="button" class="btn btn-primary"
+									onClick="javascript:execute(4);">Excecute</button></td>
+						</tr>
+						<tr>
+							<th scope="row">5</th>
+							<td>
+								<code>webContents.print({ silent: true, printBackground: true, deviceName:</code>
+								+ PRINTER_NAME + <code>});</code>
+							</td>
+							<td>Prints silently with background to the predefined printer</td>
+							<td style="color: #FF0000">Nothing is send to the printer &amp; callback will never be called</td>
+							<td><button type="button" class="btn btn-primary"
+									onClick="javascript:execute(5);">Excecute</button></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+
+		<div class="row mt-5">
+			<div class="col-12">
+				<h3>3. Check your terminal for logs</h3>
+				<p></p>
+			</div>
+		</div>
+
+		<div class="row mt-5">
+			<div class="col-12">
+				<hr />
+				<p>
+					We are using Node.js <span id="node-version"></span>,
+					Chromium <span id="chrome-version"></span>,
+					and Electron <span id="electron-version"></span>.
+				</p>
+			</div>
+		</div>
+	</div>
+
+	<!-- You can also require other files to run in this process -->
+	<script src="./renderer.js"></script>
+	<script type="text/javascript">
+		function execute(number) {
+			var printer = document.getElementById("input-printer").value;
+
+			if (number === 1) {
+				window.ipcRenderer.send("print", {});
+			} else if (number === 2) {
+				window.ipcRenderer.send("print", { silent: true });
+			} else if (number === 3) {
+				window.ipcRenderer.send("print", { silent: true, printBackground: true });
+			} else if (number === 4) {
+				window.ipcRenderer.send("print", { silent: true, deviceName: printer });
+			} else if (number === 5) {
+				window.ipcRenderer.send("print", { silent: true, printBackground: true, deviceName: printer });
+			}
+		};
+
+		const { BrowserWindow } = window.remote;
+		let printWindow = new BrowserWindow({ 'auto-hide-menu-bar': true, show: false });
+		let list = printWindow.webContents.getPrinters();
+
+		if (list.length > 0) {
+			let printers = [];
+
+			for (let i in list) {
+				printers.push(list[i].name);
+			}
+
+			document.getElementById("printers-list").textContent = printers.join(', ');
+			document.getElementById("input-printer").value = list[0].name;
+		}
+		printWindow.destroy();
+
+	</script>
+</body>
 </html>
